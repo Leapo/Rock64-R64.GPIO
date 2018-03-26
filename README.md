@@ -7,9 +7,9 @@ A re-implementation of the RPi.GPIO library for the Rock64. Currently under deve
 
 Function                   | Status
 :------------------------- | :---
-`VERSION`                  | Not yet implemented
-`RPI_INFO`                 | Not yet implemented
-`setmode`                  | Not yet implemented
+`GPIO.VERSION`             | Partial
+`GPIO.RPI_INFO`            | Not yet implemented
+`GPIO.setmode`             | Not yet implemented
 `GPIO.setwarnings`         | Not yet implemented
 `GPIO.setup`               | Implemented
 `GPIO.output`              | Implemented
@@ -20,7 +20,7 @@ Function                   | Status
 `GPIO.add_event_detect`    | Not yet implemented
 `GPIO.add_event_callback`  | Not yet implemented
 `GPIO.remove_event_detect` | Not yet implemented
-`GPIO.cleanup`             | Implemented
+`GPIO.cleanup`             | Partial
 
 # Resources
 List of resources used while building the scripts and libraries in this repository
