@@ -8,7 +8,6 @@ A re-implementation of the RPi.GPIO library for the Rock64. Currently under deve
 
 Function                   | Status
 :------------------------- | :---
-`GPIO.VERSION`             | Partial
 `GPIO.RPI_INFO`            | Not yet implemented
 `GPIO.setmode`             | Not yet implemented
 `GPIO.setwarnings`         | Not yet implemented
