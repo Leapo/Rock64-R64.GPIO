@@ -2,7 +2,8 @@
 A collection of Python libraries, utilities, and scripts for the Rock64 single-board computer
 
 ## Python Libraries and Scripts
-### R64.GPIO
+
+**R64.GPIO**
 A re-implementation of the RPi.GPIO library for the Rock64. Currently under development.
 
 Function                   | Status
