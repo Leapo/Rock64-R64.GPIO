@@ -21,7 +21,7 @@ Function                   | Status
 `GPIO.add_event_detect`    | Not yet implemented
 `GPIO.add_event_callback`  | Not yet implemented
 `GPIO.remove_event_detect` | Not yet implemented
-`GPIO.cleanup`             | Partial
+`GPIO.cleanup`             | Implemented
 
 # Resources
 List of resources used while building the scripts and libraries in this repository
