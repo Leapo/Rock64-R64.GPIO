@@ -5,22 +5,22 @@ A collection of Python libraries, utilities, and scripts for the Rock64 single-b
 ### R64.GPIO
 A re-implementation of the RPi.GPIO library for the Rock64. Currently under development.
 
-Function                   | Arguments                                                        | Status
-:------------------------- | :----------------------------------------------------------------| :---
-`VERSION`                  |                                                                  | Not yet implemented
-`RPI_INFO`                 |                                                                  | Not yet implemented
-`setmode`                  |                                                                  | Not yet implemented
-`GPIO.setwarnings`         |                                                                  | Not yet implemented
-`GPIO.setup`               | GPIO #, Direction (IN/OUT), Initial (HIGH/LOW), Pullup (UP/DOWN) | Implemented
-`GPIO.output`              | GPIO #, State (HIGH/LOW)                                         | Implemented
-`GPIO.input`               | GPIO #                                                           | Implemented
-`GPIO.PWM`                 |                                                                  | Not yet implemented
-`GPIO.wait_for_edge`       |                                                                  | Not yet implemented
-`GPIO.event_detected`      |                                                                  | Not yet implemented
-`GPIO.add_event_detect`    |                                                                  | Not yet implemented
-`GPIO.add_event_callback`  |                                                                  | Not yet implemented
-`GPIO.remove_event_detect` |                                                                  | Not yet implemented
-`GPIO.cleanup`             | GPIO #                                                           | Implemented
+Function                   | Status
+:------------------------- | :---
+`VERSION`                  | Not yet implemented
+`RPI_INFO`                 | Not yet implemented
+`setmode`                  | Not yet implemented
+`GPIO.setwarnings`         | Not yet implemented
+`GPIO.setup`               | Implemented
+`GPIO.output`              | Implemented
+`GPIO.input`               | Implemented
+`GPIO.PWM`                 | Not yet implemented
+`GPIO.wait_for_edge`       | Not yet implemented
+`GPIO.event_detected`      | Not yet implemented
+`GPIO.add_event_detect`    | Not yet implemented
+`GPIO.add_event_callback`  | Not yet implemented
+`GPIO.remove_event_detect` | Not yet implemented
+`GPIO.cleanup`             | Implemented
 
 # Resources
 List of resources used while building the scripts and libraries in this repository
