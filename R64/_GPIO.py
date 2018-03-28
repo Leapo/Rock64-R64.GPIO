@@ -5,7 +5,6 @@
 
 
 # Import modules
-import __builtin__
 import os.path
 from array import array
 from multiprocessing import Process
