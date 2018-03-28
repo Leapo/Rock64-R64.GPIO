@@ -1,5 +1,5 @@
 # Rock64-R64.GPIO
-A Python GPIO library for the Rock64 single-board computer (RPi.FPIO clone).
+A Python GPIO library for the Rock64 single-board computer ([RPi.GPIO](https://sourceforge.net/projects/raspberry-gpio-python/) clone).
 
 ## Python Libraries and Scripts
 
@@ -23,5 +23,6 @@ Function                   | Status
 
 # Resources
 List of resources used while building the scripts and libraries in this repository
+* [Sourceforge - RPi.GPIO](https://sourceforge.net/projects/raspberry-gpio-python/)
 * [Kernel.org - GPIO/SYSFS Documentation](https://www.kernel.org/doc/Documentation/gpio/sysfs.txt)
 * [Pine64 Forum - GPIO LED blinker using SYSFS on the Rock64](https://forum.pine64.org/showthread.php?tid=4695)
