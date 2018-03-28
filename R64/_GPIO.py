@@ -27,8 +27,6 @@ RPI_INFO = {'P1_REVISION': 3, 'RAM': '1024M', 'REVISION': 'a22082', 'TYPE': 'Pi 
 
 # Define GPIO arrays
 ROCK_valid_channels = [27, 32, 33, 34, 35, 36, 37, 38, 64, 65, 67, 68, 69, 76, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 96, 97, 98, 100, 101, 102, 103, 104]
-BOARD_valid_channels = [3, 5, 8, 10, 12, 15, 16, 18, 19, 21, 22, 23, 24, 26, 27, 28, 32, 33, 35, 36, 37, 38, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 54, 61, 62]
-BCM_valid_channels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
 BOARD_to_ROCK = [0, 0, 0, 89, 0, 88, 0, 0, 64, 0, 65, 0, 67, 0, 0, 100, 101, 0, 102, 97, 0, 98, 103, 96, 104, 0, 76, 68, 69, 0, 0, 0, 38, 32, 0, 33, 37, 34, 36, 0, 35, 0, 0, 81, 82, 87, 83, 0, 0, 80, 79, 85, 84, 27, 86, 0, 0, 0, 0, 0, 0, 89, 88]
 BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 37, 80, 67, 33, 36, 35, 100, 101, 102, 103, 34, 82]
 
@@ -49,28 +47,22 @@ def getmode():
     return gpio_mode
 
 def translatemode(channel):
-    if gpio_mode == ROCK:
-        if channel in ROCK_valid_channels:
-            return channel
+    if gpio_mode in ['ROCK','BOARD','BCM']:
+        # Convert to ROCK GPIO
+        if gpio_mode == BOARD:
+            newchannel = BOARD_to_ROCK[channel]
+        if gpio_mode == BCM:
+            newchannel = BCM_to_ROCK[channel]
+        if gpio_mode == ROCK:
+            newchannel = channel
+        # Check that the GPIO is valid
+        if newchannel in ROCK_valid_channels:
+            return newchannel
         else:
-            print("Error: GPIO not supported on ROCK GPIO {}").format(channel)
-            return 'none'
-    elif gpio_mode == BOARD:
-        if channel in BOARD_valid_channels:
-            channel = BOARD_to_ROCK[channel]
-            return channel
-        else:
-            print("Error: GPIO not supported on pin {}").format(channel)
-            return 'none'
-    elif gpio_mode == BCM:
-        if channel in BCM_valid_channels:
-            channel = BCM_to_ROCK[channel]
-            return channel
-        else:
-            print("Error: GPIO not supported on BCM GPIO {}").format(channel)
+            print("Error: GPIO not supported on {0} {1}").format(gpio_mode, newchannel)
             return 'none'
     else:
-        print("Error: Not implemented")
+        print("An invalid mode ({}) is currently set").format(gpio_mode)
         return 'none'
 
 def setwarnings(state=True):
