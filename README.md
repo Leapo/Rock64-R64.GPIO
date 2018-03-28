@@ -22,7 +22,7 @@ Function                   | Status
 `GPIO.cleanup`             | Implemented
 
 # Resources
-List of resources used while building the scripts and libraries in this repository
+List of resources and reference material used while building the scripts and libraries in this repository
 * [Sourceforge - RPi.GPIO](https://sourceforge.net/projects/raspberry-gpio-python/)
 * [Kernel.org - GPIO/SYSFS Documentation](https://www.kernel.org/doc/Documentation/gpio/sysfs.txt)
 * [Pine64 Forum - GPIO LED blinker using SYSFS on the Rock64](https://forum.pine64.org/showthread.php?tid=4695)
