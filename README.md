@@ -1,5 +1,5 @@
 # Rock64-R64.GPIO
-A Python GPIO library for the Rock64 single-board computer.
+A Python GPIO library for the Rock64 single-board computer (RPi.FPIO clone).
 
 ## Python Libraries and Scripts
 
