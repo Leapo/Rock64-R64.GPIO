@@ -1,5 +1,5 @@
-# Rock64-PythonUtilities
-A collection of Python libraries, utilities, and scripts for the Rock64 single-board computer
+# Rock64-R64.GPIO
+A Python GPIO library for the Rock64 single-board computer.
 
 ## Python Libraries and Scripts
 
