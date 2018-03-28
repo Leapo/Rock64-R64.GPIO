@@ -67,7 +67,7 @@ def translatemode(channel):
             channel = BCM_to_ROCK[channel]
             return channel
         else:
-            print("Error: GPIO not supported on pin {}").format(channel)
+            print("Error: GPIO not supported on BCM GPIO {}").format(channel)
             return 'none'
     else:
         print("Error: Not implemented")
