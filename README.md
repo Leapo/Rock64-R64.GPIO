@@ -22,7 +22,7 @@ Function                   | Status
 `GPIO.cleanup`             | Implemented
 
 **R64-GPIO-test.py**<br>
-A simple test script. Outputs a list of internal vars, sets the GPIO mode to "BOARD", sets up a GPIO output (blinks an LED if connected to pin 16), sets up a GPIO input (pulls-up and reports the state of pin 18), then cleans up all GPIO exports.
+A simple test script. Outputs a list of internal vars, sets the GPIO mode to "BOARD", sets up a GPIO output (blinks an LED if connected to pin 16), sets up a GPIO input (pulls-up and reports the state of pin 18), then cleans up all GPIO exports and exits.
 
 # Resources
 List of resources and reference material used while building the scripts and libraries in this repository
