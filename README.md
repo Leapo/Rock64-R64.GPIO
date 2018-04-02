@@ -14,7 +14,7 @@ Function                     | Status
 `GPIO.setup()`               | Implemented
 `GPIO.output()`              | Implemented
 `GPIO.input()`               | Implemented
-`GPIO.PWM()`                 | Experimental
+`GPIO.PWM()`<br> `start()`<br> `stop()`<br> `ChangeFrequency()`<br> `ChangeDutyCycle()`                 | Experimental
 `GPIO.wait_for_edge()`       | Not yet implemented
 `GPIO.event_detected()`      | Not yet implemented
 `GPIO.add_event_detect()`    | Not yet implemented
