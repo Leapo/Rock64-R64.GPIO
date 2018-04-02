@@ -3,12 +3,11 @@
 # Allison Creely, 2018, LGPLv3 License
 # Rock 64 GPIO Library for Python
 
-
 # Import modules
 import os.path
-from array import array
 from multiprocessing import Process
-
+from time import sleep
+#from array import array
 
 # Define static module variables
 var_gpio_root = '/sys/class/gpio'
@@ -31,10 +30,10 @@ BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 
 
 # Define dynamic module variables
 gpio_mode = ROCK
-var_warningmode = 1
+warningmode = 1
 
 
-# Functions
+# GPIO Functions
 def setmode(mode):
     if mode in ['ROCK','BOARD','BCM']:
         global gpio_mode
@@ -43,9 +42,12 @@ def setmode(mode):
         print("An invalid mode ({}) was passed to setmode(). Use one of the following: ROCK, BOARD, BCM").format(mode)
 
 def getmode():
-    return gpio_mode
+    if gpio_mode in ['ROCK','BOARD','BCM']:
+        return gpio_mode
+    else:
+        print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
 
-def translatemode(channel):
+def get_gpio_number(channel):
     if gpio_mode in ['ROCK','BOARD','BCM']:
         # Convert to ROCK GPIO
         if gpio_mode == BOARD:
@@ -61,27 +63,27 @@ def translatemode(channel):
             print("Error: GPIO not supported on {0} {1}").format(gpio_mode, newchannel)
             return 'none'
     else:
-        print("An invalid mode ({}) is currently set").format(gpio_mode)
+        print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
         return 'none'
 
 def setwarnings(state=True):
     if state in [0,1]:
-        global var_warningmode
-        var_warningmode = state
+        global warningmode
+        warningmode = state
     else:
         print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0").format(state)
 
 def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
     # Translate the GPIO based on the current gpio_mode
-    channel = translatemode(channel)
+    channel = get_gpio_number(channel)
     if channel == 'none':
         return
     # Check if GPIO export already exists
     var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
     var_gpio_exists = os.path.exists(var_gpio_filepath)
     if var_gpio_exists == 1:
-        if var_warningmode == 1:
-            print("This channel ({}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel)
+        if warningmode == 1:
+            print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel)
     # Export GPIO
     else:
         try:
@@ -117,7 +119,7 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
 
 def output(channel, var_state):
     # Translate the GPIO based on the current gpio_mode
-    channel = translatemode(channel)
+    channel = get_gpio_number(channel)
     if channel == 'none':
         return
     # Get direction of requested GPIO
@@ -126,8 +128,7 @@ def output(channel, var_state):
         with open(var_gpio_filepath, 'r') as file:
             direction = file.read(1)
     except:
-        print("Error: Unable to get GPIO direction")
-        return
+        direction = 'none'
     # Perform sanity checks
     if (direction != 'o') and (direction != 'i'):
         print("You must setup() the GPIO channel first")
@@ -145,7 +146,7 @@ def output(channel, var_state):
 
 def input(channel):
     # Translate the GPIO based on the current gpio_mode
-    channel = translatemode(channel)
+    channel = get_gpio_number(channel)
     if channel == 'none':
         return
     # Get direction of requested GPIO
@@ -154,8 +155,7 @@ def input(channel):
         with open(var_gpio_filepath, 'r') as file:
             direction = file.read(1)
     except:
-        print("Error: Unable to get GPIO direction")
-        return
+        direction = 'none'
     # Perform sanity checks
     if (direction != 'o') and (direction != 'i'):
         print("You must setup() the GPIO channel first")
@@ -167,34 +167,6 @@ def input(channel):
             return file.read(1)
     except:
         print("Error: Unable to get GPIO value")
-
-def PWM(self, channel, frequency):
-    # Translate the GPIO based on the current gpio_mode
-    channel = translatemode(channel)
-    if channel == 'none':
-        return
-    # Get direction of requested GPIO
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-        with open(var_gpio_filepath, 'r') as file:
-            direction = file.read(1)
-    except:
-        print("Error: Unable to get GPIO direction")
-        return
-    # Perform sanity checks
-    if (direction != 'o') and (direction != 'i'):
-        print("You must setup() the GPIO channel first")
-        return
-    if direction != 'o':
-        print("The GPIO channel has not been set up as an OUTPUT")
-        return
-    if frequency == '0.0':
-        print("frequency must be greater than 0.0")
-        return
-    # Not implemented
-    print("Error: Not implemented")
-    #p = Process(target=PWM_process, args=(channel, frequency,))
-    #return p
 
 def wait_for_edge(channel, var_edge, var_timeout):
     print("Error: Not implemented")
@@ -214,7 +186,7 @@ def remove_event_detect(channel):
 def cleanup(channel='none'):
     # Translate the GPIO based on the current gpio_mode
     if channel != 'none':
-        channel = translatemode(channel)
+        channel = get_gpio_number(channel)
         if channel == 'none':
             return
     # Cleanup all GPIOs
@@ -228,11 +200,86 @@ def cleanup(channel='none'):
                 pass
     # Cleanup specified GPIO
     elif channel in range(105):
-        try:
-            var_gpio_filepath = var_gpio_root + "/unexport"
-            with open(var_gpio_filepath, 'w') as file:
-                file.write(str(channel))
-        except:
-            print("Error: Unknown Failure")
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_exists = os.path.exists(var_gpio_filepath)
+        if var_gpio_exists == 1:
+            try:
+                var_gpio_filepath = var_gpio_root + "/unexport"
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write(str(channel))
+            except:
+                print("Error: Unknown Failure")
     else:
         print("Error: Invalid GPIO specified")
+
+
+# PWM Class
+class PWM:
+    def __init__(self, channel, frequency):
+        # Translate the GPIO based on the current gpio_mode
+        channel = get_gpio_number(channel)
+        if channel == 'none':
+            return
+        # Get direction of requested GPIO
+        try:
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
+            with open(var_gpio_filepath, 'r') as file:
+                direction = file.read(1)
+        except:
+            direction = 'none'
+        # Perform sanity checks
+        if (direction != 'o') and (direction != 'i'):
+            print("You must setup() the GPIO channel first")
+            return
+        if direction != 'o':
+            print("The GPIO channel has not been set up as an OUTPUT")
+            return
+        if frequency <= 0.0:
+            print("frequency must be greater than 0.0")
+            return
+        self.freq = frequency
+        self.gpio = channel
+        return
+
+    def start(self, dutycycle):
+        if (dutycycle < 0.0) or (dutycycle > 100.0):
+            print("dutycycle must have a value from 0.0 to 100.0")
+            return
+        self.dutycycle = dutycycle
+        self.pwm_calc()
+        self.p = Process(target=self.pwm_process, name='pwm_process')
+        self.p.start()
+
+    def stop(self):
+        # ToDo: Replace with a gracefull method based on shutdown()
+        self.p.terminate()
+
+    def pwm_calc(self):
+        self.sleep_low = (1.0 / self.freq) * ((100 - self.dutycycle) / 100.0)
+        self.sleep_high = (1.0 / self.freq) * ((100 - (100 - self.dutycycle)) / 100.0)
+
+    def pwm_process(self):
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(self.gpio) + "/value"
+        try:
+            while True:
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write('1')
+                sleep(self.sleep_high)
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write('0')
+                sleep(self.sleep_low)
+        except:
+            try:
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write('0')
+            except:
+                pass
+            print("Warning: PWM process ended prematurely")
+
+    def ChangeFrequency(self, frequency):
+        self.freq = frequency
+        self.pwm_calc()
+
+    def ChangeDutyCycle(self, dutycycle):
+        self.dutycycle = dutycycle
+        self.pwm_calc()
