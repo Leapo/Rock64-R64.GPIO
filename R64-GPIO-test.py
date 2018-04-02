@@ -40,7 +40,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(var_gpio_out1, GPIO.OUT, initial=GPIO.HIGH)       # Set up GPIO as an output, with an initial state of HIGH
 var_gpio_state = GPIO.input(var_gpio_out1)                   # Return state of GPIO
 print("Output State : " + str(var_gpio_state))               # Print results
-sleep(0.5)
+sleep(1)
 GPIO.output(var_gpio_out1, GPIO.LOW)                         # Set GPIO to LOW
 GPIO.cleanup(var_gpio_out1)                                  # Cleanup GPIO
 
@@ -48,8 +48,29 @@ GPIO.cleanup(var_gpio_out1)                                  # Cleanup GPIO
 GPIO.setup(var_gpio_in1, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Set up GPIO as an input, pullup enabled
 var_gpio_state = GPIO.input(var_gpio_in1)                    # Return state of GPIO
 print("Input State  : " + str(var_gpio_state))               # Print results
+sleep(0.5)
 GPIO.cleanup(var_gpio_in1)                                   # Cleanup GPIO
 
 print("")
-print("Test Complete")
+print("Testing PWM Output:")
 
+# Test PWM Output
+GPIO.setup(var_gpio_out1, GPIO.OUT, initial=GPIO.LOW)
+p=GPIO.PWM(var_gpio_out1, 60)
+print("PWM Output: 60Hz at 50% duty cycle for 1 second")
+p.start(50)
+sleep(1)
+print("PWM Output: 60Hz at 25% duty cycle for 1 second")
+p.ChangeDutyCycle(25)
+sleep(1)
+print("PWM Output: 60Hz at 10% duty cycle for 1 second")
+p.ChangeDutyCycle(10)
+sleep(1)
+print("PWM Output: 60Hz at 1% duty cycle for 1 second")
+p.ChangeDutyCycle(1)
+sleep(1)
+p.stop()
+GPIO.cleanup(var_gpio_out1)
+
+print("")
+print("Test Complete")
