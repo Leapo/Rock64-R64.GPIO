@@ -25,9 +25,6 @@ print("GPIO.PUD_DOWN  " + str(GPIO.PUD_DOWN))
 print("GPIO.VERSION   " + str(GPIO.VERSION))
 print("GPIO.RPI_INFO  " + str(GPIO.RPI_INFO))
 
-print("")
-print("Testing GPIO Input/Output:")
-
 # Set Variables
 var_gpio_out1 = 16
 var_gpio_in1 = 18
@@ -37,6 +34,9 @@ GPIO.setwarnings(True)
 GPIO.setmode(GPIO.BOARD)
 
 # Test Output
+print("")
+print("Testing GPIO Input/Output:")
+
 GPIO.setup(var_gpio_out1, GPIO.OUT, initial=GPIO.HIGH)       # Set up GPIO as an output, with an initial state of HIGH
 var_gpio_state = GPIO.input(var_gpio_out1)                   # Return state of GPIO
 print("Output State : " + str(var_gpio_state))               # Print results
@@ -51,12 +51,12 @@ print("Input State  : " + str(var_gpio_state))               # Print results
 sleep(0.5)
 GPIO.cleanup(var_gpio_in1)                                   # Cleanup GPIO
 
-print("")
-print("Testing PWM Output:")
-
 # Test PWM Output
 GPIO.setup(var_gpio_out1, GPIO.OUT, initial=GPIO.LOW)
 p=GPIO.PWM(var_gpio_out1, 60)
+
+print("")
+print("Testing PWM Output - High Precision (Default):")
 print("PWM Output: 60Hz at 50% duty cycle for 1 second")
 p.start(50)
 sleep(1)
@@ -70,6 +70,23 @@ print("PWM Output: 60Hz at 1% duty cycle for 1 second")
 p.ChangeDutyCycle(1)
 sleep(1)
 p.stop()
+
+print("")
+print("Testing PWM Output - Low Precision:")
+print("PWM Output: 60Hz at 50% duty cycle for 1 second")
+p.start(50, pwm_precision=GPIO.LOW)
+sleep(1)
+print("PWM Output: 60Hz at 25% duty cycle for 1 second")
+p.ChangeDutyCycle(25)
+sleep(1)
+print("PWM Output: 60Hz at 10% duty cycle for 1 second")
+p.ChangeDutyCycle(10)
+sleep(1)
+print("PWM Output: 60Hz at 1% duty cycle for 1 second")
+p.ChangeDutyCycle(1)
+sleep(1)
+p.stop()
+
 GPIO.cleanup(var_gpio_out1)
 
 print("")
