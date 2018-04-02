@@ -6,6 +6,7 @@
 # Import modules
 import os.path
 from multiprocessing import Process
+from time import time
 from time import sleep
 #from array import array
 
@@ -31,7 +32,6 @@ BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 
 # Define dynamic module variables
 gpio_mode = ROCK
 warningmode = 1
-
 
 # GPIO Functions
 def setmode(mode):
@@ -241,10 +241,11 @@ class PWM:
         self.gpio = channel
         return
 
-    def start(self, dutycycle):
+    def start(self, dutycycle, pwm_precision=HIGH):
         if (dutycycle < 0.0) or (dutycycle > 100.0):
             print("dutycycle must have a value from 0.0 to 100.0")
             return
+        self.precision = pwm_precision
         self.dutycycle = dutycycle
         self.pwm_calc()
         self.p = Process(target=self.pwm_process, name='pwm_process')
@@ -254,20 +255,37 @@ class PWM:
         # ToDo: Replace with a gracefull method based on shutdown()
         self.p.terminate()
 
+    @staticmethod
+    def pwm_busywait(wait_time):
+        current_time = time()
+        while (time() < current_time+wait_time):
+            pass
+
     def pwm_calc(self):
         self.sleep_low = (1.0 / self.freq) * ((100 - self.dutycycle) / 100.0)
         self.sleep_high = (1.0 / self.freq) * ((100 - (100 - self.dutycycle)) / 100.0)
 
     def pwm_process(self):
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(self.gpio) + "/value"
+        # Note: Low precision mode greatly reduces CPU usage, but accuracy will depend upon your kernel.
+        # p.start(dutycycle, pwm_precision=GPIO.LOW)
         try:
-            while True:
-                with open(var_gpio_filepath, 'w') as file:
-                    file.write('1')
-                sleep(self.sleep_high)
-                with open(var_gpio_filepath, 'w') as file:
-                    file.write('0')
-                sleep(self.sleep_low)
+            if self.precision == HIGH:
+                while True:
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write('1')
+                    PWM.pwm_busywait(self.sleep_high)
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write('0')
+                    PWM.pwm_busywait(self.sleep_low)
+            else:
+                while True:
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write('1')
+                    sleep(self.sleep_high)
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write('0')
+                    sleep(self.sleep_low)
         except:
             try:
                 with open(var_gpio_filepath, 'w') as file:
