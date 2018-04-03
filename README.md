@@ -19,7 +19,7 @@ Method 1 - Explicitly import R64.GPIO (Reccomended):
 
 Method 2 - Spoof RPi.GPIO:
 1. Download the entire "R64" folder from the repo.
-1. Rename the "R64" folder to "RPi"
+1. Rename the "R64" folder to "RPi".
 1. Place the "RPi" folder in the same directory as the Python script you're working with.
 1. Importing via "`import RPi.GPIO as GPIO`" will now work as expected.
 
