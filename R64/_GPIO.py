@@ -300,15 +300,13 @@ class PWM:
             print("Warning: PWM process ended prematurely")
 
     def ChangeFrequency(self, frequency):
-        state = self.state
-        self.stop()
         self.freq = frequency
-        if state == 1:
+        if self.state == 1:
+            self.stop()
             self.start(self.dutycycle)
 
     def ChangeDutyCycle(self, dutycycle):
-        state = self.state
-        self.stop()
         self.dutycycle = dutycycle
-        if state == 1:
+        if self.state == 1:
+            self.stop()
             self.start(self.dutycycle)
