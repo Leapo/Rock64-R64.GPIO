@@ -4,11 +4,12 @@
 # Rock 64 GPIO Library for Python
 
 # Import modules
+import os
+import signal
 import os.path
-from multiprocessing import Process
+from multiprocessing import Process, Value
 from time import time
 from time import sleep
-#from array import array
 
 # Define static module variables
 var_gpio_root = '/sys/class/gpio'
@@ -169,19 +170,19 @@ def input(channel):
         print("Error: Unable to get GPIO value")
 
 def wait_for_edge(channel, var_edge, var_timeout):
-    print("Error: Not implemented")
+    print("Error: GPIO.wait_for_edge() Not implemented")
 
 def event_detected(channel, var_edge):
-    print("Error: Not implemented")
+    print("Error: GPIO.event_detected() Not implemented")
 
 def add_event_detect(channel, var_edge, callback, bouncetime):
-    print("Error: Not implemented")
+    print("Error: GPIO.add_event_detect() Not implemented")
 
 def add_event_callback(channel, callback):
-    print("Error: Not implemented")
+    print("Error: GPIO.add_event_callback() Not implemented")
 
 def remove_event_detect(channel):
-    print("Error: Not implemented")
+    print("Error: GPIO.remove_event_detect() Not implemented")
 
 def cleanup(channel='none'):
     # Translate the GPIO based on the current gpio_mode
@@ -239,6 +240,7 @@ class PWM:
             return
         self.freq = frequency
         self.gpio = channel
+        self.state = 0
         return
 
     def start(self, dutycycle, pwm_precision=HIGH):
@@ -248,12 +250,14 @@ class PWM:
         self.precision = pwm_precision
         self.dutycycle = dutycycle
         self.pwm_calc()
-        self.p = Process(target=self.pwm_process, name='pwm_process')
+        self.p = Process(target=self.pwm_process, args=(self.gpio, self.sleep_high, self.sleep_low, self.precision), name='pwm_process')
         self.p.start()
+        self.state = 1
 
     def stop(self):
-        # ToDo: Replace with a gracefull method based on shutdown()
         self.p.terminate()
+        self.p.join()
+        self.state = 0
 
     @staticmethod
     def pwm_busywait(wait_time):
@@ -265,27 +269,28 @@ class PWM:
         self.sleep_low = (1.0 / self.freq) * ((100 - self.dutycycle) / 100.0)
         self.sleep_high = (1.0 / self.freq) * ((100 - (100 - self.dutycycle)) / 100.0)
 
-    def pwm_process(self):
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(self.gpio) + "/value"
+    @staticmethod
+    def pwm_process(channel, sleep_high, sleep_low, precision=HIGH):
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
         # Note: Low precision mode greatly reduces CPU usage, but accuracy will depend upon your kernel.
         # p.start(dutycycle, pwm_precision=GPIO.LOW)
         try:
-            if self.precision == HIGH:
+            if precision == HIGH:
                 while True:
                     with open(var_gpio_filepath, 'w') as file:
                         file.write('1')
-                    PWM.pwm_busywait(self.sleep_high)
+                    PWM.pwm_busywait(sleep_high)
                     with open(var_gpio_filepath, 'w') as file:
                         file.write('0')
-                    PWM.pwm_busywait(self.sleep_low)
+                    PWM.pwm_busywait(sleep_low)
             else:
                 while True:
                     with open(var_gpio_filepath, 'w') as file:
                         file.write('1')
-                    sleep(self.sleep_high)
+                    sleep(sleep_high)
                     with open(var_gpio_filepath, 'w') as file:
                         file.write('0')
-                    sleep(self.sleep_low)
+                    sleep(sleep_low)
         except:
             try:
                 with open(var_gpio_filepath, 'w') as file:
@@ -295,9 +300,15 @@ class PWM:
             print("Warning: PWM process ended prematurely")
 
     def ChangeFrequency(self, frequency):
+        state = self.state
+        self.stop()
         self.freq = frequency
-        self.pwm_calc()
+        if state == 1:
+            self.start(self.dutycycle)
 
     def ChangeDutyCycle(self, dutycycle):
+        state = self.state
+        self.stop()
         self.dutycycle = dutycycle
-        self.pwm_calc()
+        if state == 1:
+            self.start(self.dutycycle)
