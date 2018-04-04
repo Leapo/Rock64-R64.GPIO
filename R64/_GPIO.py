@@ -18,6 +18,9 @@ HIGH = 1
 LOW = 0
 OUT = 'out'
 IN = 'in'
+RISING = 'rising'
+FALLING = 'falling'
+BOTH = 'both'
 PUD_UP = 0
 PUD_DOWN = 1
 VERSION = '0.6.3'
@@ -143,11 +146,8 @@ def output(channel, value):
         except:
             direction = 'none'
         # Perform sanity checks
-        if (direction != 'o') and (direction != 'i'):
-            print("You must setup() the GPIO channel first")
-            return
         if direction != 'o':
-            print("The GPIO channel has not been set up as an OUTPUT")
+            print("You must setup() the GPIO channel as an output first")
             return
         # Set the value of the GPIO (high/low)
         try:
@@ -185,19 +185,77 @@ def input(channel):
     except:
         print("Error: Unable to get GPIO value")
 
-def wait_for_edge(channel, var_edge, var_timeout):
-    print("Error: GPIO.wait_for_edge() Not implemented")
+def wait_for_edge(channel, edge, bouncetime='none', timeout='none'):
+    # Translate the GPIO based on the current gpio_mode
+    channel = get_gpio_number(channel)
+    if channel == 'none':
+        return
+    # Get direction of requested GPIO
+    try:
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
+        with open(var_gpio_filepath, 'r') as file:
+            direction = file.read(1)
+    except:
+        direction = 'none'
+    # Perform sanity checks
+    if direction != 'i':
+        print("You must setup() the GPIO channel as an input first")
+        return
+    if edge not in [RISING, FALLING, BOTH]:
+        print("The edge must be set to RISING, FALLING or BOTH")
+        return
+    if (bouncetime != 'none') and (bouncetime <= 0):
+        print("Bouncetime must be greater than 0")
+        return
+    if (timeout != 'none') and (timeout <= 0):
+        print("timeout must be greater than 0")
+        return
+    # Set the edge state to trigger on
+    try:
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/edge"
+        with open(var_gpio_filepath, 'w') as file:
+            file.write(str(edge))
+    except:
+        print("Error: Unable to set GPIO edge state")
+        return
+    # Get current state of the input
+    try:
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        with open(var_gpio_filepath, 'r') as file:
+            original_value = file.read(1)
+    except:
+        print("Error: Unable to get GPIO value")
+        return
+    # convert times from  ms to fractions of a second
+    if timeout != 'none':
+        timeout = timeout / 1000.0
+    if bouncetime != 'none':
+        bouncetime = bouncetime / 1000.0
+    # Wait for interrupt (1ms resolution)
+    while True:
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        with open(var_gpio_filepath, 'r') as file:
+            new_value = file.read(1)
+        if new_value != original_value:
+            if bouncetime != 'none':
+                sleep(bouncetime)
+            return True
+        sleep(0.001)
+        if timeout != 'none':
+            timeout -= 0.001
+            if timeout <= 0.0:
+                return None
 
-def event_detected(channel, var_edge):
+def event_detected(channel):
     print("Error: GPIO.event_detected() Not implemented")
 
-def add_event_detect(channel, var_edge, callback, bouncetime):
+def add_event_detect(gpio, edge, callback='none', bouncetime='none'):
     print("Error: GPIO.add_event_detect() Not implemented")
 
-def add_event_callback(channel, callback):
+def add_event_callback(gpio, callback):
     print("Error: GPIO.add_event_callback() Not implemented")
 
-def remove_event_detect(channel):
+def remove_event_detect(gpio):
     print("Error: GPIO.remove_event_detect() Not implemented")
 
 def cleanup(channel='none'):
@@ -255,11 +313,8 @@ class PWM:
         except:
             direction = 'none'
         # Perform sanity checks
-        if (direction != 'o') and (direction != 'i'):
-            print("You must setup() the GPIO channel first")
-            return
         if direction != 'o':
-            print("The GPIO channel has not been set up as an OUTPUT")
+            print("You must setup() the GPIO channel as an output first")
             return
         if frequency <= 0.0:
             print("frequency must be greater than 0.0")
