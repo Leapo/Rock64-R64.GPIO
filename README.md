@@ -10,7 +10,7 @@ See [the wiki](https://github.com/Leapo/Rock64-R64.GPIO/wiki) for documentation 
 **R64-GPIO-test.py**<br>
 A simple test script. Outputs a list of internal vars, sets the GPIO mode to "BOARD", sets up a GPIO output (blinks an LED if connected to pin 16), sets up a GPIO input (pulls-up and reports the state of pin 18), then cleans up all GPIO exports and exits.
 
-## Module Installation and Usage:
+## Library Installation and Usage:
 **Importing R64.GPIO**<br>
 Below is the reccomended method for importing this module into your project. For alternate methods, see the [Installation and Usage](https://github.com/Leapo/Rock64-R64.GPIO/wiki/Installation-and-Usage) wiki page.
 1. Download the entire "R64" folder from the repo.
