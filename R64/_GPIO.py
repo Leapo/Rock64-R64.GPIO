@@ -4,8 +4,6 @@
 # Rock 64 GPIO Library for Python
 
 # Import modules
-import os
-import signal
 import os.path
 from multiprocessing import Process, Value
 from time import time
