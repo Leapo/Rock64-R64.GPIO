@@ -59,7 +59,7 @@ def get_gpio_number(channel):
         if newchannel in ROCK_valid_channels:
             return newchannel
         else:
-            print("Error: GPIO not supported on {0} {1}").format(gpio_mode, newchannel)
+            print("Error: GPIO not supported on {0} {1}").format(gpio_mode, channel)
             return 'none'
     else:
         print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
@@ -79,26 +79,26 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
     # Itterate through channel list
     for index in range(len(channel)):
         # Translate the GPIO based on the current gpio_mode
-        channel = get_gpio_number(channel[index])
-        if channel == 'none':
+        channel_int = get_gpio_number(channel[index])
+        if channel_int == 'none':
             return
         # Check if GPIO export already exists
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         var_gpio_exists = os.path.exists(var_gpio_filepath)
         if var_gpio_exists == 1:
             if warningmode == 1:
-                print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel)
-        # Export GPIO
+                print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel_int)
+        # Export GPIO if an export doesn't already exist
         else:
             try:
                 var_gpio_filepath = var_gpio_root + "/export"
                 with open(var_gpio_filepath, 'w') as file:
-                    file.write(str(channel))
+                    file.write(str(channel_int))
             except:
                 print("Error: Unable to export GPIO")
         # Set GPIO direction (in/out)
         try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/direction"
             with open(var_gpio_filepath, 'w') as file:
                 file.write(str(direction))
         except:
@@ -107,7 +107,7 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
         # If GPIO direction is out, set initial value of the GPIO (high/low)
         if direction == 'out':
             try:
-                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
                 with open(var_gpio_filepath, 'w') as file:
                     # If multiple initial values, itterate through initial values
                     if isinstance(initial, int) == False:
@@ -119,25 +119,25 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
         # If GPIO direction is in, set the state of internal pullup (high/low)
         if direction == 'in':
             try:
-                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/active_low"
+                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/active_low"
                 with open(var_gpio_filepath, 'w') as file:
                     file.write(str(pull_up_down))
             except:
                 print("Error: Unable to set internal pullup resistor state")
 
-def output(channel, var_state):
+def output(channel, value):
     # If channel is an intiger, convert intiger to list
     if isinstance(channel, int) == True:
         channel = [channel]
     # Itterate through channel list
     for index in range(len(channel)):
         # Translate the GPIO based on the current gpio_mode
-        channel = get_gpio_number(channel[index])
-        if channel == 'none':
+        channel_int = get_gpio_number(channel[index])
+        if channel_int == 'none':
             return
         # Get direction of requested GPIO
         try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/direction"
             with open(var_gpio_filepath, 'r') as file:
                 direction = file.read(1)
         except:
@@ -151,13 +151,13 @@ def output(channel, var_state):
             return
         # Set the value of the GPIO (high/low)
         try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
             with open(var_gpio_filepath, 'w') as file:
                 # If multiple states, itterate through states
-                if isinstance(var_state, int) == False:
-                    file.write(str(var_state[index]))
+                if isinstance(value, int) == False:
+                    file.write(str(value[index]))
                 else:
-                    file.write(str(var_state))
+                    file.write(str(value))
         except:
             print("Error: Unable to set GPIO output state")
 
@@ -201,34 +201,44 @@ def remove_event_detect(channel):
     print("Error: GPIO.remove_event_detect() Not implemented")
 
 def cleanup(channel='none'):
-    # Translate the GPIO based on the current gpio_mode
-    if channel != 'none':
-        channel = get_gpio_number(channel)
-        if channel == 'none':
-            return
-    # Cleanup all GPIOs
+    # If no channel is specified...
     if channel == 'none':
-        for var_gpio_all in range(105):
-            try:
-                var_gpio_filepath = var_gpio_root + "/unexport"
-                with open(var_gpio_filepath, 'w') as file:
-                    file.write(str(var_gpio_all))
-            except:
-                pass
-    # Cleanup specified GPIO
-    elif channel in range(105):
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
-        var_gpio_exists = os.path.exists(var_gpio_filepath)
-        if var_gpio_exists == 1:
-            try:
-                var_gpio_filepath = var_gpio_root + "/unexport"
-                with open(var_gpio_filepath, 'w') as file:
-                    file.write(str(channel))
-            except:
-                print("Error: Unknown Failure")
+        # Cleanup all GPIOs
+        var_gpio_cleared = 0
+        for gpio_index in range(105):
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(gpio_index) + "/value"
+            var_gpio_exists = os.path.exists(var_gpio_filepath)
+            if var_gpio_exists == 1:
+                try:
+                    var_gpio_filepath = var_gpio_root + "/unexport"
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write(str(gpio_index))
+                    var_gpio_cleared = 1
+                except:
+                    print("Error: Unknown failure while performing cleanup")
+        if (var_gpio_cleared == 0) and (warningmode == 1):
+            print("No channels have been set up yet - nothing to clean up!  Try cleaning up at the end of your program instead!")
+    # If a channel is specified...
     else:
-        print("Error: Invalid GPIO specified")
-
+        # If channel is an intiger, convert intiger to list
+        if isinstance(channel, int) == True:
+            channel = [channel]
+        # Itterate through channel list
+        for index in range(len(channel)):
+            # Translate the GPIO based on the current gpio_mode
+            channel_int = get_gpio_number(channel[index])
+            if channel_int == 'none':
+                return
+            # Cleanup specified GPIO
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
+            var_gpio_exists = os.path.exists(var_gpio_filepath)
+            if var_gpio_exists == 1:
+                try:
+                    var_gpio_filepath = var_gpio_root + "/unexport"
+                    with open(var_gpio_filepath, 'w') as file:
+                        file.write(str(channel_int))
+                except:
+                    print("Error: Unknown failure while performing cleanup")
 
 # PWM Class
 class PWM:
