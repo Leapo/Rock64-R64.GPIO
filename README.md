@@ -12,7 +12,7 @@ A simple test script. Outputs a list of internal vars, sets the GPIO mode to "BO
 
 ## Library Installation and Usage:
 **Importing R64.GPIO**<br>
-Below is the reccomended method for importing this library into your project. For alternate methods, see the [Installation and Usage](https://github.com/Leapo/Rock64-R64.GPIO/wiki/Installation-and-Usage) wiki page.
+Below is the reccomended method for importing this library into your project. For alternate methods, see the [Installation and Usage](https://github.com/Leapo/Rock64-R64.GPIO/wiki/Installation-and-Usage) page in the wiki.
 1. Download the entire "R64" folder from the repo.
 1. Place the "R64" folder in the same directory as the Python script you're working with.
 1. Within your script, substitute the traditional "`import RPi.GPIO as GPIO`" line for "`import R64.GPIO as GPIO`".
