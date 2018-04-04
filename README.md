@@ -15,6 +15,7 @@ A simple test script. Outputs a list of internal vars, sets the GPIO mode to "BO
 1. Download the entire "R64" folder from the repo.
 1. Place the "R64" folder in the same directory as the Python script you're working with.
 1. Within your script, substitute the traditional "`import RPi.GPIO as GPIO`" line for "`import R64.GPIO as GPIO`".
+
 Once imported, syntax for implemented functions should be identical to RPi.GPIO.
 
 # Resources
