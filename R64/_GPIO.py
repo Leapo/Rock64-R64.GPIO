@@ -75,75 +75,93 @@ def setwarnings(state=True):
         print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0").format(state)
 
 def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
-    # Translate the GPIO based on the current gpio_mode
-    channel = get_gpio_number(channel)
-    if channel == 'none':
-        return
-    # Check if GPIO export already exists
-    var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
-    var_gpio_exists = os.path.exists(var_gpio_filepath)
-    if var_gpio_exists == 1:
-        if warningmode == 1:
-            print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel)
-    # Export GPIO
-    else:
+    # If channel is an intiger, convert intiger to list
+    if isinstance(channel, int) == True:
+        channel = [channel]
+    # Itterate through channel list
+    for index in range(len(channel)):
+        # Translate the GPIO based on the current gpio_mode
+        channel = get_gpio_number(channel[index])
+        if channel == 'none':
+            return
+        # Check if GPIO export already exists
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_exists = os.path.exists(var_gpio_filepath)
+        if var_gpio_exists == 1:
+            if warningmode == 1:
+                print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel)
+        # Export GPIO
+        else:
+            try:
+                var_gpio_filepath = var_gpio_root + "/export"
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write(str(channel))
+            except:
+                print("Error: Unable to export GPIO")
+        # Set GPIO direction (in/out)
         try:
-            var_gpio_filepath = var_gpio_root + "/export"
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
             with open(var_gpio_filepath, 'w') as file:
-                file.write(str(channel))
+                file.write(str(direction))
         except:
-            print("Error: Unable to export GPIO")
-    # Set GPIO direction (in/out)
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-        with open(var_gpio_filepath, 'w') as file:
-            file.write(str(direction))
-    except:
-        print("Error: Unable to set GPIO direction")
-        return
-    # If GPIO direction is out, set initial value of the GPIO (high/low)
-    if direction == 'out':
+            print("Error: Unable to set GPIO direction")
+            return
+        # If GPIO direction is out, set initial value of the GPIO (high/low)
+        if direction == 'out':
+            try:
+                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+                with open(var_gpio_filepath, 'w') as file:
+                    # If multiple initial values, itterate through initial values
+                    if isinstance(initial, int) == False:
+                        file.write(str(initial[index]))
+                    else:
+                        file.write(str(initial))
+            except:
+                print("Error: Unable to set GPIO initial state")
+        # If GPIO direction is in, set the state of internal pullup (high/low)
+        if direction == 'in':
+            try:
+                var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/active_low"
+                with open(var_gpio_filepath, 'w') as file:
+                    file.write(str(pull_up_down))
+            except:
+                print("Error: Unable to set internal pullup resistor state")
+
+def output(channel, var_state):
+    # If channel is an intiger, convert intiger to list
+    if isinstance(channel, int) == True:
+        channel = [channel]
+    # Itterate through channel list
+    for index in range(len(channel)):
+        # Translate the GPIO based on the current gpio_mode
+        channel = get_gpio_number(channel[index])
+        if channel == 'none':
+            return
+        # Get direction of requested GPIO
+        try:
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
+            with open(var_gpio_filepath, 'r') as file:
+                direction = file.read(1)
+        except:
+            direction = 'none'
+        # Perform sanity checks
+        if (direction != 'o') and (direction != 'i'):
+            print("You must setup() the GPIO channel first")
+            return
+        if direction != 'o':
+            print("The GPIO channel has not been set up as an OUTPUT")
+            return
+        # Set the value of the GPIO (high/low)
         try:
             var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
             with open(var_gpio_filepath, 'w') as file:
-                file.write(str(initial))
+                # If multiple states, itterate through states
+                if isinstance(var_state, int) == False:
+                    file.write(str(var_state[index]))
+                else:
+                    file.write(str(var_state))
         except:
-            print("Error: Unable to set GPIO initial state")
-    # If GPIO direction is in, set the state of internal pullup (high/low)
-    if direction == 'in':
-        try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/active_low"
-            with open(var_gpio_filepath, 'w') as file:
-                file.write(str(pull_up_down))
-        except:
-            print("Error: Unable to set internal pullup resistor state")
-
-def output(channel, var_state):
-    # Translate the GPIO based on the current gpio_mode
-    channel = get_gpio_number(channel)
-    if channel == 'none':
-        return
-    # Get direction of requested GPIO
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-        with open(var_gpio_filepath, 'r') as file:
-            direction = file.read(1)
-    except:
-        direction = 'none'
-    # Perform sanity checks
-    if (direction != 'o') and (direction != 'i'):
-        print("You must setup() the GPIO channel first")
-        return
-    if direction != 'o':
-        print("The GPIO channel has not been set up as an OUTPUT")
-        return
-    # Set the value of the GPIO (high/low)
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
-        with open(var_gpio_filepath, 'w') as file:
-            file.write(str(var_state))
-    except:
-        print("Error: Unable to set GPIO output state")
+            print("Error: Unable to set GPIO output state")
 
 def input(channel):
     # Translate the GPIO based on the current gpio_mode
