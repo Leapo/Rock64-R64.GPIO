@@ -32,7 +32,7 @@ BOARD_to_ROCK = [0, 0, 0, 89, 0, 88, 0, 0, 64, 0, 65, 0, 67, 0, 0, 100, 101, 0, 
 BCM_to_ROCK = [68, 69, 89, 88, 81, 87, 83, 76, 104, 98, 97, 96, 38, 32, 64, 65, 37, 80, 67, 33, 36, 35, 100, 101, 102, 103, 34, 82]
 
 # Define dynamic module variables
-gpio_mode = ROCK
+gpio_mode = None
 warningmode = 1
 
 # GPIO Functions
@@ -53,20 +53,39 @@ def get_gpio_number(channel):
     if gpio_mode in ['ROCK','BOARD','BCM']:
         # Convert to ROCK GPIO
         if gpio_mode == BOARD:
-            newchannel = BOARD_to_ROCK[channel]
+            channel_new = BOARD_to_ROCK[channel]
         if gpio_mode == BCM:
-            newchannel = BCM_to_ROCK[channel]
+            channel_new = BCM_to_ROCK[channel]
         if gpio_mode == ROCK:
-            newchannel = channel
+            channel_new = channel
         # Check that the GPIO is valid
-        if newchannel in ROCK_valid_channels:
-            return newchannel
+        if channel_new in ROCK_valid_channels:
+            return channel_new
         else:
             print("Error: GPIO not supported on {0} {1}").format(gpio_mode, channel)
-            return 'none'
+            return None
     else:
-        print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
-        return 'none'
+        print("RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.ROCK), GPIO.setmode(GPIO.BOARD), or GPIO.setmode(GPIO.BCM)")
+        return None
+
+def gpio_function(channel):
+    # Translate the GPIO based on the current gpio_mode
+    channel_int = get_gpio_number(channel)
+    if channel_int == None:
+        return
+    # Get direction of requested GPIO
+    try:
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/direction"
+        with open(var_gpio_filepath, 'r') as file:
+            direction = file.read(1)
+    except:
+        return "GPIO.UNKNOWN"
+    if direction == 'i':
+        return "GPIO.INPUT"
+    elif direction == 'o':
+        return "GPIO.OUTPUT"
+    else:
+        return "GPIO.UNKNOWN"
 
 def setwarnings(state=True):
     if state in [0,1]:
@@ -74,6 +93,35 @@ def setwarnings(state=True):
         warningmode = state
     else:
         print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0").format(state)
+
+def validate_direction(channel, validation_type='both'):
+    # Translate the GPIO based on the current gpio_mode
+    channel_int = get_gpio_number(channel)
+    if channel_int == None:
+        return
+    # Get direction of requested GPIO
+    if validation_type in ['input', 'output', 'both']:
+        try:
+            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/direction"
+            with open(var_gpio_filepath, 'r') as file:
+                direction = file.read(1)
+        except:
+            direction = 'none'
+        # Perform sanity checks
+        if (validation_type == 'input') and (direction != 'i'):
+            print("You must setup() the GPIO channel ({0} {1}) as an input first").format(gpio_mode, channel)
+            return 0
+        elif (validation_type == 'output') and (direction != 'o'):
+            print("You must setup() the GPIO channel ({0} {1}) as an output first").format(gpio_mode, channel)
+            return 0
+        elif ((validation_type == 'both') and (direction not in ['i', 'o'])) or (direction == 'none'):
+            print("You must setup() the GPIO channel ({0} {1}) first").format(gpio_mode, channel)
+            return 0
+        else:
+            return 1
+    else:
+        print("Error: {} is not a valid direction. use one of the following: input, output, both")
+        return
 
 def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
     # If channel is an intiger, convert intiger to list
@@ -83,14 +131,14 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
     for index in range(len(channel)):
         # Translate the GPIO based on the current gpio_mode
         channel_int = get_gpio_number(channel[index])
-        if channel_int == 'none':
+        if channel_int == None:
             return
         # Check if GPIO export already exists
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         var_gpio_exists = os.path.exists(var_gpio_filepath)
         if var_gpio_exists == 1:
             if warningmode == 1:
-                print("This channel (ROCK {}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(channel_int)
+                print("This channel ({0} {1}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(gpio_mode, channel[index])
         # Export GPIO if an export doesn't already exist
         else:
             try:
@@ -136,18 +184,10 @@ def output(channel, value):
     for index in range(len(channel)):
         # Translate the GPIO based on the current gpio_mode
         channel_int = get_gpio_number(channel[index])
-        if channel_int == 'none':
-            return
-        # Get direction of requested GPIO
-        try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/direction"
-            with open(var_gpio_filepath, 'r') as file:
-                direction = file.read(1)
-        except:
-            direction = 'none'
         # Perform sanity checks
-        if direction != 'o':
-            print("You must setup() the GPIO channel as an output first")
+        if channel_int == None:
+            return
+        if validate_direction(channel[index], 'output') == 0:
             return
         # Set the value of the GPIO (high/low)
         try:
@@ -163,23 +203,15 @@ def output(channel, value):
 
 def input(channel):
     # Translate the GPIO based on the current gpio_mode
-    channel = get_gpio_number(channel)
-    if channel == 'none':
-        return
-    # Get direction of requested GPIO
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-        with open(var_gpio_filepath, 'r') as file:
-            direction = file.read(1)
-    except:
-        direction = 'none'
+    channel_int = get_gpio_number(channel)
     # Perform sanity checks
-    if (direction != 'o') and (direction != 'i'):
-        print("You must setup() the GPIO channel first")
+    if channel_int == None:
+        return
+    if validate_direction(channel, 'both') == 0:
         return
     # Get the value of the GPIO
     try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         with open(var_gpio_filepath, 'r') as file:
             return file.read(1)
     except:
@@ -187,22 +219,14 @@ def input(channel):
 
 def wait_for_edge(channel, edge, bouncetime='none', timeout='none'):
     # Translate the GPIO based on the current gpio_mode
-    channel = get_gpio_number(channel)
-    if channel == 'none':
-        return
-    # Get direction of requested GPIO
-    try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-        with open(var_gpio_filepath, 'r') as file:
-            direction = file.read(1)
-    except:
-        direction = 'none'
+    channel_int = get_gpio_number(channel)
     # Perform sanity checks
-    if direction != 'i':
-        print("You must setup() the GPIO channel as an input first")
+    if channel_int == None:
+        return
+    if validate_direction(channel, 'input') == 0:
         return
     if edge not in [RISING, FALLING, BOTH]:
-        print("The edge must be set to RISING, FALLING or BOTH")
+        print("The edge must be set to GPIO.RISING, GPIO.FALLING or GPIO.BOTH")
         return
     if (bouncetime != 'none') and (bouncetime <= 0):
         print("Bouncetime must be greater than 0")
@@ -212,7 +236,7 @@ def wait_for_edge(channel, edge, bouncetime='none', timeout='none'):
         return
     # Set the edge state to trigger on
     try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/edge"
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/edge"
         with open(var_gpio_filepath, 'w') as file:
             file.write(str(edge))
     except:
@@ -220,7 +244,7 @@ def wait_for_edge(channel, edge, bouncetime='none', timeout='none'):
         return
     # Get current state of the input
     try:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         with open(var_gpio_filepath, 'r') as file:
             original_value = file.read(1)
     except:
@@ -231,18 +255,18 @@ def wait_for_edge(channel, edge, bouncetime='none', timeout='none'):
         timeout = timeout / 1000.0
     if bouncetime != 'none':
         bouncetime = bouncetime / 1000.0
-    # Wait for interrupt (1ms resolution)
+    # Wait for interrupt (10ms resolution)
     while True:
-        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/value"
+        var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         with open(var_gpio_filepath, 'r') as file:
             new_value = file.read(1)
         if new_value != original_value:
             if bouncetime != 'none':
                 sleep(bouncetime)
             return True
-        sleep(0.001)
+        sleep(0.01)
         if timeout != 'none':
-            timeout -= 0.001
+            timeout -= 0.01
             if timeout <= 0.0:
                 return None
 
@@ -251,6 +275,8 @@ def event_detected(channel):
 
 def add_event_detect(gpio, edge, callback='none', bouncetime='none'):
     print("Error: GPIO.add_event_detect() Not implemented")
+    #p = Process(target=wait_for_edge, args=(gpio, edge), name='eventdetect_process')
+    #p.start()
 
 def add_event_callback(gpio, callback):
     print("Error: GPIO.add_event_callback() Not implemented")
@@ -285,7 +311,7 @@ def cleanup(channel='none'):
         for index in range(len(channel)):
             # Translate the GPIO based on the current gpio_mode
             channel_int = get_gpio_number(channel[index])
-            if channel_int == 'none':
+            if channel_int == None:
                 return
             # Cleanup specified GPIO
             var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
@@ -302,25 +328,17 @@ def cleanup(channel='none'):
 class PWM:
     def __init__(self, channel, frequency):
         # Translate the GPIO based on the current gpio_mode
-        channel = get_gpio_number(channel)
-        if channel == 'none':
-            return
-        # Get direction of requested GPIO
-        try:
-            var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel) + "/direction"
-            with open(var_gpio_filepath, 'r') as file:
-                direction = file.read(1)
-        except:
-            direction = 'none'
+        channel_int = get_gpio_number(channel)
         # Perform sanity checks
-        if direction != 'o':
-            print("You must setup() the GPIO channel as an output first")
+        if channel_int == None:
+            return
+        if validate_direction(channel, 'output') == 0:
             return
         if frequency <= 0.0:
             print("frequency must be greater than 0.0")
             return
         self.freq = frequency
-        self.gpio = channel
+        self.gpio = channel_int
         self.state = 0
         return
 
