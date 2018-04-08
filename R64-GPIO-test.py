@@ -49,6 +49,15 @@ var_gpio_state = GPIO.input(var_gpio_in)                    # Return state of GP
 print("Input State  : " + str(var_gpio_state))              # Print results
 sleep(0.5)
 
+# Test interrupt
+print("")
+print("Waiting 3 seconds for interrupt...")
+var_interrupt = GPIO.wait_for_edge(var_gpio_in, GPIO.FALLING, timeout=3000)
+if var_interrupt is None:
+    print("Timeout!")
+else:
+    print("Detected!")
+
 # Test PWM Output
 p=GPIO.PWM(var_gpio_out, 60)                                # Create PWM object/instance
 
@@ -85,9 +94,9 @@ sleep(1)
 p.stop()
 
 print("")
-print("Testing PWM Output - Frequency - High Precision:")
+print("Testing PWM Output - Frequency - Low Precision:")
 print("60Hz at 50% duty cycle for 1 second")
-p.start(50)
+p.start(50, pwm_precision=GPIO.LOW)
 sleep(1)
 print("30Hz at 50% duty cycle for 1 second")
 p.ChangeFrequency(30)
