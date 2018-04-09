@@ -19,6 +19,10 @@ Below is the reccomended method for importing this library into your project. Fo
 
 Once imported, syntax for implemented functions should be identical to RPi.GPIO.
 
+# Test Platform
+
+All testing is being done on a Rock64 (1GB model) running Ayufan release 0.5.15 (Debian Jessie).
+
 # Resources
 List of resources and reference material used while building the scripts and libraries in this repository
 * [Sourceforge - RPi.GPIO](https://sourceforge.net/projects/raspberry-gpio-python/)
