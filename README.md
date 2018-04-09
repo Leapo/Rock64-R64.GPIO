@@ -23,6 +23,8 @@ Once imported, syntax for implemented functions should be identical to RPi.GPIO.
 
 All testing is being done on a Rock64 (1GB model) running [Ayufan release 0.5.15](https://github.com/ayufan-rock64/linux-build/releases/tag/0.5.15) (Debian Jessie).
 
+Compatability with other versions of Linux running on the Rock64 is not gauranteed.
+
 # Resources
 List of resources and reference material used while building the scripts and libraries in this repository
 * [Sourceforge - RPi.GPIO](https://sourceforge.net/projects/raspberry-gpio-python/)
