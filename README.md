@@ -21,7 +21,7 @@ Once imported, syntax for implemented functions should be identical to RPi.GPIO.
 
 # Test Platform
 
-All testing of this library is done on a Rock64 (1GB model) running [Ayufan release 0.5.15](https://github.com/ayufan-rock64/linux-build/releases/tag/0.5.15) (Debian Jessie).
+All testing of this library is done on a Rock64 (1GB model) running [Ayufan release 0.5.15](https://github.com/ayufan-rock64/linux-build/releases/tag/0.5.15) (Debian Jessie) or running Armbian 5.75 (Debian Stretch).
 
 Compatability with other versions of Linux running on the Rock64 is not gauranteed.
 
