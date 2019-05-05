@@ -41,13 +41,13 @@ def setmode(mode):
         global gpio_mode
         gpio_mode = mode
     else:
-        print("An invalid mode ({}) was passed to setmode(). Use one of the following: ROCK, BOARD, BCM").format(mode)
+        print("An invalid mode ({}) was passed to setmode(). Use one of the following: ROCK, BOARD, BCM".format(mode))
 
 def getmode():
     if gpio_mode in ['ROCK','BOARD','BCM']:
         return gpio_mode
     else:
-        print("Error: An invalid mode ({}) is currently set").format(gpio_mode)
+        print("Error: An invalid mode ({}) is currently set".format(gpio_mode))
 
 def get_gpio_number(channel):
     if gpio_mode in ['ROCK','BOARD','BCM']:
@@ -62,7 +62,7 @@ def get_gpio_number(channel):
         if channel_new in ROCK_valid_channels:
             return channel_new
         else:
-            print("Error: GPIO not supported on {0} {1}").format(gpio_mode, channel)
+            print("Error: GPIO not supported on {0} {1}".format(gpio_mode, channel))
             return None
     else:
         print("RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.ROCK), GPIO.setmode(GPIO.BOARD), or GPIO.setmode(GPIO.BCM)")
@@ -92,7 +92,7 @@ def setwarnings(state=True):
         global warningmode
         warningmode = state
     else:
-        print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0").format(state)
+        print("Error: {} is not a valid warning mode. Use one of the following: True, 1, False, 0".format(state))
 
 def validate_direction(channel, validation_type='both'):
     # Translate the GPIO based on the current gpio_mode
@@ -109,13 +109,13 @@ def validate_direction(channel, validation_type='both'):
             direction = 'none'
         # Perform sanity checks
         if (validation_type == 'input') and (direction != 'i'):
-            print("You must setup() the GPIO channel ({0} {1}) as an input first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) as an input first".format(gpio_mode, channel))
             return 0
         elif (validation_type == 'output') and (direction != 'o'):
-            print("You must setup() the GPIO channel ({0} {1}) as an output first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) as an output first".format(gpio_mode, channel))
             return 0
         elif ((validation_type == 'both') and (direction not in ['i', 'o'])) or (direction == 'none'):
-            print("You must setup() the GPIO channel ({0} {1}) first").format(gpio_mode, channel)
+            print("You must setup() the GPIO channel ({0} {1}) first".format(gpio_mode, channel))
             return 0
         else:
             return 1
@@ -138,7 +138,7 @@ def setup(channel, direction, pull_up_down=PUD_DOWN, initial=LOW):
         var_gpio_exists = os.path.exists(var_gpio_filepath)
         if var_gpio_exists == 1:
             if warningmode == 1:
-                print("This channel ({0} {1}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.").format(gpio_mode, channel[index])
+                print("This channel ({0} {1}) is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.".format(gpio_mode, channel[index]))
         # Export GPIO if an export doesn't already exist
         else:
             try:
