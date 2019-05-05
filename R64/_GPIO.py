@@ -213,7 +213,7 @@ def input(channel):
     try:
         var_gpio_filepath = str(var_gpio_root) + "/gpio" + str(channel_int) + "/value"
         with open(var_gpio_filepath, 'r') as file:
-            return file.read(1)
+            return int(file.read(1))
     except:
         print("Error: Unable to get GPIO value")
 
